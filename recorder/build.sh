@@ -1,1 +1,1 @@
-sudo docker build -t stream_recorder .
+sudo docker build -t recorder .

@@ -1,1 +1,1 @@
-sudo docker build -t stream_transcriber_whisper .
+sudo docker build -t stt .
