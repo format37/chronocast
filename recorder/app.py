@@ -10,9 +10,12 @@ logger = logging.getLogger(__name__)
 
 def record_stream(segment_duration=600):  # segment_duration is in seconds (10 minutes)
     logger.info("Recording started.")
-    # Define the command to get the stream URL
-    streamlink_cmd = "streamlink https://www.1tv.ru/live best -O"
+    SERVER = os.environ.get('SERVER')
 
+    # Define the command to get the stream URL
+    streamlink_cmd = f"streamlink {SERVER} best -O"
+
+    os.makedirs(f"data/audio", exist_ok=True)
     project = os.environ.get('PROJECT')
     os.makedirs(f"data/audio/{project}", exist_ok=True)
     

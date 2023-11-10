@@ -1,7 +1,7 @@
 import requests
 import os
 
-BASE_URL = "http://127.0.0.1:80"  # Change this if your server is on a different address
+BASE_URL = "http://127.0.0.1:8054"  # Change this if your server is on a different address
 API_TOKEN = "your_secret_token"  # This should match the token in the server
 
 headers = {"Authorization": API_TOKEN}
@@ -38,16 +38,22 @@ def delete_file(file_path):
 if __name__ == "__main__":
     # Replace 'your_directory' with the directory you want to list files from
     print("Listing files...")
-    files = list_files('data/audio')
+    path = 'data/audio/ORT'
+    files = list_files(path)
     print(files)
 
     # Replace 'file_path_on_server' with the file you want to download
     # and 'local_save_path' with the path where you want to save the file
-    print("\nDownloading file...")
-    download_file('data/audio/TKMFullText.pdf', './TKMFullText.pdf')
-
-    # Replace 'file_path_on_server' with the file you want to delete
-    print("\nDeleting file...")
-    delete_file('data/audio/TKMFullText.pdf')
-
+    
+    counter = 0
+    for file in files:
+        if counter == len(files)-1:
+            print("counter:", counter, "files:", len(files))
+            break            
+        file_path = f'{path}/{file}'
+        print("\nDownloading file: ", file_path)
+        download_file(file_path, f'./{file}')
+        delete_file(file_path)        
+        counter += 1
+        
 print("Done!")
