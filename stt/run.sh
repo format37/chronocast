@@ -9,14 +9,16 @@ mkdir -p cache
 # -d --restart always 
 sudo docker stop stt
 sudo docker rm stt
+# -d \
+    # --restart always \
 sudo docker run \
-    -d \
-    --restart always \
     --gpus '"device=0"' \
     -v $(pwd)/cache:/app/cache \
     -v /home/alex/projects/chronocast/data:/app/data \
-    -e BASE_URL=http://www.urdomain.com:8054 \
-    -e API_TOKEN=token \
-    -e PROJECT=ORT \
+    -v $(pwd)/config.json:/app/config.json \
     --name stt \
     -t stt
+
+# -e BASE_URL=http://www.urdomain.com:8054 \
+# -e API_TOKEN=token \
+# -e PROJECT=ORT \

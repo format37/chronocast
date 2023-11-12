@@ -1,0 +1,23 @@
+{
+    "ORT":{
+        "name":"ORT",
+        "BASE_URL":"http://address:8054",
+        "API_TOKEN":"token",
+        "language":"ru",
+        "prompt":"Аудиозапись с телевизора"
+    },
+    "oneplusone":{
+        "name":"oneplusone",
+        "BASE_URL":"http://address:8054",
+        "API_TOKEN":"token",
+        "language":"",
+        "prompt":"Аудіозапис із телевізора"
+    }
+    "belarusone":{
+        "name":"belarusone",
+        "BASE_URL":"http://address:8054",
+        "API_TOKEN":"token",
+        "language":"",
+        "prompt":"Аўдыёзапіс з тэлевізара"
+    }
+}

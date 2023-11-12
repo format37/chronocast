@@ -16,7 +16,7 @@ services:
       - TZ=Europe/Moscow
       - API_TOKEN=your_secret_token
 
-  recorder_ort:
+recorder_ort:
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -49,3 +49,20 @@ services:
       - TZ=Europe/Moscow
       - PROJECT=oneplusone
       - SERVER='https://1plus1.video/tvguide/1plus1/online'
+
+  recorder_belarusone:
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./data:/app/data
+    build: recorder
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    network_mode: "host"
+    environment:
+      - TZ=Europe/Moscow
+      - PROJECT=belarusone
+      - SERVER='https://ngtrk.dc.beltelecom.by/ngtrk/smil:belarus1.smil/playlist.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9MTEvMTIvMjAyMyA2OjMzOjIyIFBNJmhhc2hfdmFsdWU9cmI3dTZvQnZJU004bW02R2FqbkxkQT09JnZhbGlkbWludXRlcz0xMjA='
