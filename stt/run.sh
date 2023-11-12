@@ -10,7 +10,7 @@ mkdir -p cache
 sudo docker stop stt
 sudo docker rm stt
 # 
-    # 
+#     
 sudo docker run \
     -d \
     --restart always \

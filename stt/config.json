@@ -12,7 +12,7 @@
         "API_TOKEN":"token",
         "language":"",
         "prompt":"Аудіозапис із телевізора"
-    }
+    },
     "belarusone":{
         "name":"belarusone",
         "BASE_URL":"http://address:8054",
