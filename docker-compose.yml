@@ -16,7 +16,7 @@ services:
       - TZ=Europe/Moscow
       - API_TOKEN=your_secret_token
 
-recorder_ort:
+  recorder_ort:
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
