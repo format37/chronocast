@@ -32,3 +32,20 @@ services:
       - TZ=Europe/Moscow
       - PROJECT=ORT
       - SERVER='https://www.1tv.ru/live'
+
+  recorder_oneplusone:
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./data:/app/data
+    build: recorder
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    network_mode: "host"
+    environment:
+      - TZ=Europe/Moscow
+      - PROJECT=oneplusone
+      - SERVER='https://1plus1.video/tvguide/1plus1/online'

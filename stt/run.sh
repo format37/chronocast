@@ -10,11 +10,13 @@ mkdir -p cache
 sudo docker stop stt
 sudo docker rm stt
 sudo docker run \
+    -d \
+    --restart always \
     --gpus '"device=0"' \
     -v $(pwd)/cache:/app/cache \
     -v /home/alex/projects/chronocast/data:/app/data \
-    -e BASE_URL=http://localhost:8054 \
-    -e API_TOKEN=your_token \
+    -e BASE_URL=http://www.j1f.ru:8054 \
+    -e API_TOKEN=8VsdROHbUVeGKM3GsqB9UMGL1QvrXWquruTs9zImj8FgDC0AuWL4c70R4y7IhP6f7AYJXA \
     -e PROJECT=ORT \
     --name stt \
     -t stt

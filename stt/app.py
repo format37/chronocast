@@ -57,9 +57,9 @@ def transcribe(project, model):
         filepath = os.path.join(f"/app/data/audio/{project}", file)
         logger.info(f"Processing file {filename}...")
         result = model.transcribe(
-            filepath,
-            language="ru",
+            filepath,            
             temperature=0.8,
+            language="ru",
             prompt="Аудиозапись с телевизора"
         )
         # print(result["text"])
