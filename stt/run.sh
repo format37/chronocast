@@ -9,9 +9,11 @@ mkdir -p cache
 # -d --restart always 
 sudo docker stop stt
 sudo docker rm stt
-# -d \
-    # --restart always \
+# 
+    # 
 sudo docker run \
+    -d \
+    --restart always \
     --gpus '"device=0"' \
     -v $(pwd)/cache:/app/cache \
     -v /home/alex/projects/chronocast/data:/app/data \
