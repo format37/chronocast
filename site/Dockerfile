@@ -11,7 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # COPY server/webhook_cert.pem /usr/src/app
 # COPY server/webhook_pkey.pem /usr/src/app
-COPY index.html /usr/src/app
+# COPY index.html /usr/src/app
+COPY templates /usr/src/app/templates
 COPY app.py /usr/src/app
 
 # Expose port 80 for HTTP traffic
