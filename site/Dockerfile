@@ -15,13 +15,13 @@ COPY index.html /usr/src/app
 COPY app.py /usr/src/app
 
 # Expose port 80 for HTTP traffic
-EXPOSE 80
+# EXPOSE 80
 
 # Expose port 443 for HTTPS traffic
-EXPOSE 443
+# EXPOSE 443
 
 # Define environment variable
-ENV NAME World
+# ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "./app.py"]
+CMD ["python", "app.py"]
