@@ -5,4 +5,6 @@ sudo docker rm site
 sudo docker run \
     --name site \
     --network host \
+    --restart always \  
+    -d \
     -t site
