@@ -3,8 +3,8 @@ sudo docker rm site
 #   --restart always \  
 #   -d \
 sudo docker run \
+    -d \
     --name site \
     --network host \
-    --restart always \  
-    -d \
+    --restart always \    
     -t site
