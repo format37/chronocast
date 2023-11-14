@@ -1,11 +1,10 @@
 import whisper
-import os
 import time
-# import pandas as pd
 import logging
 import requests
 import os
 import json
+from google.cloud import storage
 
 # Init logging with level INFO
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +46,16 @@ def delete_file(file_path, BASE_URL, headers):
         # print(f"Error: {response.status_code}, {response.text}")
         logger.error(f"Error: {response.status_code}, {response.text}")
 
+def upload_to_bucket(project_name, local_path, blob_path):
+    """Uploads a file to the bucket."""
+    BUCKET_NAME = 'rtlm'  # Your Google Cloud Storage bucket name
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(blob_path)
+    blob.upload_from_filename(local_path)
+    logger.info(f"File {local_path} uploaded to {blob_path}.")
+    
+
 def transcribe(project, model):
     project_name = project['name']
     # get list of files in /app/data/audio sorted ascending
@@ -85,8 +94,13 @@ def transcribe(project, model):
         logger.info(f"Transcription length: {len(transcription)}")
         # save transcription to file
         transcription_filename = filename.replace(".mp3", ".txt")
-        with open(f"/app/data/transcriptions/{project_name}/{transcription_filename}", "w") as f:
+        transcription_filepath = f"/app/data/transcriptions/{project_name}/{transcription_filename}"
+        with open(transcription_filepath, "w") as f:
             f.write(transcription)
+
+        local_path = transcription_filepath
+        blob_path = f"transcriptions/{project_name}/{transcription_filename}"
+        upload_to_bucket(project_name, local_path, blob_path)
 
         # move file to /app/data/processed
         os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")
@@ -115,7 +129,7 @@ def main():
 
     while(True):
 
-        server_files_len_min = 2
+        server_files_len_max = 0
 
         for project_name, project in config.items():
 
@@ -147,13 +161,13 @@ def main():
                 delete_file(file_path, BASE_URL, headers)
                 counter += 1
 
-            if server_files_len < server_files_len_min:
-                server_files_len_min = server_files_len
+            if server_files_len > server_files_len_max:
+                server_files_len_max = server_files_len
 
-        # wait for 600 seconds
-        if server_files_len_min < 2:
-            print("Queue is empty. Waiting for 10 minutes...")
-            time.sleep(600)
+        # wait for 60 seconds
+        if server_files_len_max < 2:
+            print("Queue is empty. Waiting for 60 sec...")
+            time.sleep(60)
 
 
 if __name__ == "__main__":
