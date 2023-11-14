@@ -9,8 +9,8 @@ COPY requirements /usr/src/app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY server/webhook_cert.pem /usr/src/app
-COPY server/webhook_pkey.pem /usr/src/app
+# COPY server/webhook_cert.pem /usr/src/app
+# COPY server/webhook_pkey.pem /usr/src/app
 COPY index.html /usr/src/app
 COPY app.py /usr/src/app
 
