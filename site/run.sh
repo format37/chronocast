@@ -4,4 +4,5 @@ sudo docker rm site
 #   -d \
 sudo docker run \
     --name site \
+    --network host \
     -t site
