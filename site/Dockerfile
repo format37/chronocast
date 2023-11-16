@@ -30,4 +30,5 @@ ENV NAME World
 # CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:443", "--certfile", "webhook_cert.pem", "--keyfile", "webhook_pkey.pem", "app:app"]
 # CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:443", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "app:app"]
 # gunicorn --certfile=fullchain.pem --keyfile=privkey.pem -b 0.0.0.0:443 your_flask_app:app
-CMD ["gunicorn", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "-b", "0.0.0.0:443", "app:app"]
+# CMD ["gunicorn", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "-b", "0.0.0.0:443", "app:app"]
+CMD ["gunicorn", "--certfile=fullchain.pem", "--keyfile=privkey.pem", "-b", "0.0.0.0:443", "app:app"]
