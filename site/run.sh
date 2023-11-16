@@ -7,5 +7,5 @@ sudo docker run \
     --name site \
     --restart always \
     -d \
-    -p 443:443 \    
+    -p 443:443 \
     -t site
