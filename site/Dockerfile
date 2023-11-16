@@ -9,20 +9,18 @@ COPY requirements.txt /usr/src/app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# COPY server/webhook_cert.pem /usr/src/app
-# COPY server/webhook_pkey.pem /usr/src/app
-# COPY index.html /usr/src/app
+COPY webhook_cert.pem /usr/src/app
+COPY webhook_pkey.pem /usr/src/app
 COPY templates /usr/src/app/templates
 COPY app.py /usr/src/app
 
-# Expose port 80 for HTTP traffic
-# EXPOSE 80
-
-# Expose port 443 for HTTPS traffic
-# EXPOSE 443
+# Make port 443 available to the world outside this container
+EXPOSE 443
 
 # Define environment variable
-# ENV NAME World
+ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "app.py"]
+# CMD ["python", "app.py"]
+# Run the Flask app with SSL
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:443", "--certfile", "webhook_cert.pem", "--keyfile", "webhook_pkey.pem", "app:app"]
