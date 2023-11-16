@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # COPY webhook_cert.pem /usr/src/app
 # COPY webhook_pkey.pem /usr/src/app
 # Copy SSL certificates
-COPY ~/cert/fullchain.pem /usr/src/app/
-COPY ~/cert/privkey.pem /usr/src/app/
+COPY cert/fullchain.pem /usr/src/app/
+COPY cert/privkey.pem /usr/src/app/
 
 COPY templates /usr/src/app/templates
 COPY app.py /usr/src/app
