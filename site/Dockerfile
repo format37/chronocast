@@ -13,8 +13,8 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy SSL certificates
-COPY cert/fullchain.pem /usr/src/app/
-COPY cert/privkey.pem /usr/src/app/
+# COPY cert/fullchain.pem /usr/src/app/fullchain.pem
+# COPY cert/privkey.pem /usr/src/app/privkey.pem
 
 COPY settings.txt /usr/src/app/settings.txt
 
@@ -23,5 +23,5 @@ EXPOSE 443
 
 # Запустите сервер разработки Django
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:443"]
-CMD ["gunicorn", "--certfile=/usr/src/app/fullchain.pem", "--keyfile=/usr/src/app/privkey.pem", "-b", "0.0.0.0:443", "--access-logfile", "-", "--error-logfile", "-", "chronocast.wsgi:application"]
+CMD ["gunicorn", "--certfile=/usr/src/app/cert/fullchain.pem", "--keyfile=/usr/src/app/cert/privkey.pem", "-b", "0.0.0.0:443", "--access-logfile", "-", "--error-logfile", "-", "chronocast.wsgi:application"]
 
