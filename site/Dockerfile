@@ -12,17 +12,11 @@ COPY . .
 # Установите зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy SSL certificates
-# COPY cert/fullchain.pem /usr/src/app/fullchain.pem
-# COPY cert/privkey.pem /usr/src/app/privkey.pem
-
-# COPY settings.txt /usr/src/app/settings.txt
-
-# Copy current directory main/static to /
-COPY main/static /static
-
 # Определите порт, на котором будет работать приложение
 EXPOSE 443
+
+# Collect static files
+RUN python manage.py collectstatic --noinput
 
 # Запустите сервер разработки Django
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:443"]
