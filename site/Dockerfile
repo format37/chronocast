@@ -1,34 +1,25 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim
+# Используйте официальный образ Python
+FROM python:3.12.0
 
-# Set the working directory in the container
+# Установите рабочую директорию в контейнере
 WORKDIR /usr/src/app
 
-COPY requirements.txt /usr/src/app
+RUN apt-get update && apt-get install -y gettext
 
-# Install any needed packages specified in requirements.txt
+# Скопируйте файлы проекта в контейнер
+COPY . .
+
+# Установите зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# COPY webhook_cert.pem /usr/src/app
-# COPY webhook_pkey.pem /usr/src/app
 # Copy SSL certificates
 COPY cert/fullchain.pem /usr/src/app/
 COPY cert/privkey.pem /usr/src/app/
 
-COPY templates /usr/src/app/templates
-COPY app.py /usr/src/app
-
-# Make port 443 available to the world outside this container
+# Определите порт, на котором будет работать приложение
 EXPOSE 443
 
-# Define environment variable
-ENV NAME World
+# Запустите сервер разработки Django
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:443"]
+CMD ["gunicorn", "--certfile=fullchain.pem", "--keyfile=privkey.pem", "-b", "0.0.0.0:443", "myproject.wsgi:application"]
 
-# Run app.py when the container launches
-# CMD ["python", "app.py"]
-# Run the Flask app with SSL
-# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:443", "--certfile", "webhook_cert.pem", "--keyfile", "webhook_pkey.pem", "app:app"]
-# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:443", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "app:app"]
-# gunicorn --certfile=fullchain.pem --keyfile=privkey.pem -b 0.0.0.0:443 your_flask_app:app
-# CMD ["gunicorn", "--certfile", "fullchain.pem", "--keyfile", "privkey.pem", "-b", "0.0.0.0:443", "app:app"]
-CMD ["gunicorn", "--certfile=fullchain.pem", "--keyfile=privkey.pem", "-b", "0.0.0.0:443", "app:app"]
