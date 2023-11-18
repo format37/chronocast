@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+"""
 from django.contrib import admin
 from django.urls import path, include
 from main import views
@@ -28,4 +30,27 @@ urlpatterns += i18n_patterns(
     # Ваши URL-конфигурации приложения
     path('', include('main.urls')),
     # Другие URL, которые должны быть локализованы
+)"""
+
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
+from main import views
+from django.conf.urls.i18n import i18n_patterns
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.index),
+    path('i18n/', include('django.conf.urls.i18n')),
+]
+
+urlpatterns += i18n_patterns(
+    # Your app URL configurations
+    path('', include('main.urls')),
+    # Other URLs that need to be localized
 )
+
+# Serve static files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
