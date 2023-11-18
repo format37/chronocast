@@ -23,5 +23,5 @@ EXPOSE 443
 
 # Запустите сервер разработки Django
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:443"]
-CMD ["gunicorn", "--certfile=fullchain.pem", "--keyfile=privkey.pem", "-b", "0.0.0.0:443", "--access-logfile", "-", "--error-logfile", "-", "chronocast.wsgi:application"]
+CMD ["gunicorn", "--certfile=/usr/src/app/fullchain.pem", "--keyfile=/usr/src/app/privkey.pem", "-b", "0.0.0.0:443", "--access-logfile", "-", "--error-logfile", "-", "chronocast.wsgi:application"]
 
