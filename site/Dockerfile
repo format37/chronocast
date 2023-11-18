@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # COPY settings.txt /usr/src/app/settings.txt
 
-COPY static /static
+COPY static /matic
 
 # Определите порт, на котором будет работать приложение
 EXPOSE 443
