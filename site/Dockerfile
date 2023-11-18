@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY cert/fullchain.pem /usr/src/app/
 COPY cert/privkey.pem /usr/src/app/
 
+COPY settings.txt /usr/src/app/settings.txt
+
 # Определите порт, на котором будет работать приложение
 EXPOSE 443
 
