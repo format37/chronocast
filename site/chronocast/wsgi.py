@@ -11,6 +11,15 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info("wsgi.py: setting DJANGO_SETTINGS_MODULE")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chronocast.settings')
 
+logger.info("wsgi.py: getting wsgi application")
 application = get_wsgi_application()
+
+logger.info("wsgi.py: end")
