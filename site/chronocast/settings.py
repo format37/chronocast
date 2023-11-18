@@ -39,7 +39,7 @@ LANGUAGES = [
     ('uk', _('Ukrainian')),
 ]
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['rtlm.info']
 
 
 # Application definition
