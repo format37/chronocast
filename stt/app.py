@@ -72,38 +72,45 @@ def transcribe(project, model):
         # get file path
         filepath = os.path.join(f"/app/data/audio/{project_name}", file)
         logger.info(f"Processing file {filename}...")
-        if project['language'] == '':
-            result = model.transcribe(
-                filepath,            
-                temperature=0.8,
-                prompt=project['prompt']
-            )
-        else:
-            result = model.transcribe(
-                filepath,            
-                temperature=0.8,
-                language=project['language'],
-                prompt=project['prompt']
-            )
-        # language="ru",
-        # prompt="Аудиозапись с телевизора"
-        # print(result["text"])
+        try:
+            if project['language'] == '':
+                result = model.transcribe(
+                    filepath,            
+                    temperature=0.8,
+                    prompt=project['prompt']
+                )
+            else:
+                result = model.transcribe(
+                    filepath,            
+                    temperature=0.8,
+                    language=project['language'],
+                    prompt=project['prompt']
+                )
+            # language="ru",
+            # prompt="Аудиозапись с телевизора"
+            # print(result["text"])
 
-        # transcription = filename
-        transcription = result["text"]
-        logger.info(f"Transcription length: {len(transcription)}")
-        # save transcription to file
-        transcription_filename = filename.replace(".mp3", ".txt")
-        transcription_filepath = f"/app/data/transcriptions/{project_name}/{transcription_filename}"
-        with open(transcription_filepath, "w") as f:
-            f.write(transcription)
+            # transcription = filename
+            transcription = result["text"]
+            logger.info(f"Transcription length: {len(transcription)}")
+            # save transcription to file
+            transcription_filename = filename.replace(".mp3", ".txt")
+            transcription_filepath = f"/app/data/transcriptions/{project_name}/{transcription_filename}"
+            with open(transcription_filepath, "w") as f:
+                f.write(transcription)
 
-        local_path = transcription_filepath
-        blob_path = f"transcriptions/{project_name}/{transcription_filename}"
-        upload_to_bucket(project_name, local_path, blob_path)
+            local_path = transcription_filepath
+            blob_path = f"transcriptions/{project_name}/{transcription_filename}"
+            upload_to_bucket(project_name, local_path, blob_path)
 
-        # move file to /app/data/processed
-        os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")
+            # move file to /app/data/processed
+            os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            # create err folder if not exists
+            os.makedirs(f"/app/data/processed/{project_name}/err", exist_ok=True)
+            # move file to /app/data/processed
+            os.rename(filepath, f"/app/data/processed/{project_name}/err/{filename}")
 
         # iterator += 1
         # break before the last file
