@@ -162,7 +162,13 @@ def main():
                     print("counter:", counter, "files:", len(files))
                     break            
                 file_path = f'{path}/{file}'
-                print("\nDownloading file: ", file_path)
+                # Create folder if not exists
+                logger.info(f"Creating folder: /app/data/audio/{project_name}")
+                # os.makedirs(os.path.dirname(f'/app/data/audio/{project_name}'), exist_ok=True)                
+                # Corrected folder creation
+                os.makedirs(f'/app/data/audio/{project_name}', exist_ok=True)
+                logger.info(f"Downloading file: {file_path}")
+                # print("\nDownloading file: ", file_path)
                 download_file(file_path, f'/app/data/audio/{project_name}/{file}', BASE_URL, headers)
                 transcribe(project, model)
                 delete_file(file_path, BASE_URL, headers)

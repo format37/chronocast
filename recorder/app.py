@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def record_stream(segment_duration=600):  # segment_duration is in seconds (10 minutes)
+def record_stream(segment_duration=300):  # segment_duration is in seconds (10 minutes)
     logger.info("Recording started.")
     SERVER = os.environ.get('SERVER')
 
