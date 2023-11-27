@@ -1,7 +1,13 @@
 # Create folder ./cache if not exist
 mkdir -p cache
-sudo docker stop stt_0
-sudo docker rm stt_0
+
+# Check if the container exists, then stop and remove it
+if [ $(sudo docker ps -a -f name=stt_0 --format '{{.Names}}') = 'stt_0' ]; then
+    sudo docker stop stt_0
+    sudo docker rm stt_0
+fi
+
+# Run the Docker container
 sudo docker run \
     --gpus '"device=0"' \
     --restart always \
