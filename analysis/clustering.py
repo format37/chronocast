@@ -41,6 +41,9 @@ def convert_to_array(embedding_str):
 
 
 def plot_clusters(df, matrix, legend_append_values=None):
+
+    channels_instead_of_clusters = True
+
     logger.info("Plotting clusters...")
     tsne = TSNE(n_components=2, perplexity=15, random_state=42, init="random", learning_rate=200)
     vis_dims2 = tsne.fit_transform(matrix)
@@ -73,102 +76,121 @@ def plot_clusters(df, matrix, legend_append_values=None):
         ]
     # colors = colors[:len(np.unique(df.Cluster))]
     # colors = plt.get_cmap("tab10").colors
-    colors = {name_id: color for name_id, color in zip(df["name_id"].unique(), colors)}
-
-    cluster_sizes = df.Cluster.value_counts(normalize=True).sort_values(ascending=False)
     
     # Initialize subplot
     fig = make_subplots(rows=1, cols=1)
     
-    """for category in cluster_sizes.index:
-        color = colors[category]
-        xs = np.array(x)[df.Cluster == category]
-        ys = np.array(y)[df.Cluster == category]
-        texts = df[df.Cluster == category]['Sentence'].values  # Get the text for each point in this cluster
+    if channels_instead_of_clusters:
+        colors = {name_id: color for name_id, color in zip(df["name_id"].unique(), colors)}
+        for name_id in df["name_id"].unique():
+            color = colors[name_id]
+            name = names[name_id]
+            
+            xs = np.array(x)[df["name_id"] == name_id] 
+            ys = np.array(y)[df["name_id"] == name_id]
+            texts = df[df["name_id"] == name_id]['Sentence'].values
 
-        cluster_percentage = cluster_sizes[category] * 100  # cluster_sizes is already normalized
+            name_percentage = (df["name_id"] == name_id).mean() * 100
 
-         # Append values to the legend
-        if legend_append_values is not None:
-            legend_append = f', {legend_append_values[category]}'
-        else:
-            legend_append = ''
-
-        # Add scatter plot to subplot
-        fig.add_trace(
-            go.Scatter(
-                x=xs, y=ys, 
+            fig.add_trace(
+                go.Scatter(
+                x=xs, y=ys,  
                 mode='markers',
                 marker=dict(color=color, size=5),
-                hovertext=texts,  # Display the text when hovering over a point
-                hoverinfo='text',  # Show only the hovertext
-                name=f'Cluster {category} ({cluster_percentage:.2f}%)' + legend_append,
+                hovertext=texts,
+                hoverinfo='text',
+                name=f'{name} ({name_percentage:.2f}%)',
+                )
             )
-        )
 
-        avg_x = xs.mean()
-        avg_y = ys.mean()
+            avg_x = xs.mean()
+            avg_y = ys.mean()
 
-        # Add marker for average point to subplot
-        fig.add_trace(
-            go.Scatter(
+            fig.add_trace(
+                go.Scatter(
                 x=[avg_x], y=[avg_y],
                 mode='markers',
                 marker=dict(color=color, size=10, symbol='x'),
-                name=f'Avg Cluster {category}',
+                name=f'Avg {name}',
                 hoverinfo='name'
+                )
             )
+
+        fig.update_layout(
+        showlegend=True, 
+        title_text="Clusters visualized in 2D by name using t-SNE"
         )
+        fig.show()
 
-    fig.update_layout(showlegend=True, title_text="Clusters identified visualized in language 2d using t-SNE")
-    fig.show()"""
-    for name_id in df["name_id"].unique():
-        color = colors[name_id]
-        name = names[name_id]
-        
-        xs = np.array(x)[df["name_id"] == name_id] 
-        ys = np.array(y)[df["name_id"] == name_id]
-        texts = df[df["name_id"] == name_id]['Sentence'].values
+    else: # clusters    
+        colors = ["purple", "green", "red", "blue", "orange", "yellow", "pink", "brown", "gray", "black", "cyan", "magenta"]
+        colors = colors[:len(np.unique(df.Cluster))]
+        cluster_sizes = df.Cluster.value_counts(normalize=True).sort_values(ascending=False)
+        for category in cluster_sizes.index:
+            color = colors[category]
+            xs = np.array(x)[df.Cluster == category]
+            ys = np.array(y)[df.Cluster == category]
+            texts = df[df.Cluster == category]['Sentence'].values  # Get the text for each point in this cluster
 
-        name_percentage = (df["name_id"] == name_id).mean() * 100
+            cluster_percentage = cluster_sizes[category] * 100  # cluster_sizes is already normalized
 
-        fig.add_trace(
-            go.Scatter(
-            x=xs, y=ys,  
-            mode='markers',
-            marker=dict(color=color, size=5),
-            hovertext=texts,
-            hoverinfo='text',
-            name=f'{name} ({name_percentage:.2f}%)',
+            # Append values to the legend
+            if legend_append_values is not None:
+                legend_append = f', {legend_append_values[category]}'
+            else:
+                legend_append = ''
+
+            # Add scatter plot to subplot
+            fig.add_trace(
+                go.Scatter(
+                    x=xs, y=ys, 
+                    mode='markers',
+                    marker=dict(color=color, size=5),
+                    hovertext=texts,  # Display the text when hovering over a point
+                    hoverinfo='text',  # Show only the hovertext
+                    name=f'Cluster {category} ({cluster_percentage:.2f}%)' + legend_append,
+                )
             )
-        )
 
-        avg_x = xs.mean()
-        avg_y = ys.mean()
+            avg_x = xs.mean()
+            avg_y = ys.mean()
 
-        fig.add_trace(
-            go.Scatter(
-            x=[avg_x], y=[avg_y],
-            mode='markers',
-            marker=dict(color=color, size=10, symbol='x'),
-            name=f'Avg {name}',
-            hoverinfo='name'
+            # Add marker for average point to subplot
+            fig.add_trace(
+                go.Scatter(
+                    x=[avg_x], y=[avg_y],
+                    mode='markers',
+                    marker=dict(color=color, size=10, symbol='x'),
+                    name=f'Avg Cluster {category}',
+                    hoverinfo='name'
+                )
             )
-        )
 
-    fig.update_layout(
-    showlegend=True, 
-    title_text="Clusters visualized in 2D by name using t-SNE"
-    )
-    fig.show()
+        fig.update_layout(showlegend=True, title_text="Clusters identified visualized in language 2d using t-SNE")
+        fig.show()
 
 
 def main():
-    n_clusters = 20
+    n_clusters = 4
     # Load embeddings
     logger.info('Loading embeddings...')
     df = pd.read_csv('data/embeddings.csv')
     # df = pd.read_csv('local_conversations_embeddings.csv')
+    logger.info(f'0. Number of sentences: {len(df)}')
+
+    # Drop records that shorter than 10 characters
+    logger.info('Dropping records that shorter than 100 characters...')
+    df = df[df['Sentence'].str.len() > 100]
+    logger.info(f'1. Number of sentences: {len(df)}')
+
+    filter = [
+        'transcript',
+        'subtit',
+    ]
+    # Drop records, that contains filter words
+    logger.info('Dropping records, that contains filter words...')
+    df = df[~df['Sentence'].str.contains('|'.join(filter))]
+    logger.info(f'2. Number of sentences: {len(df)}')
 
     # Reloading the original DataFrame from the CSV file
     # df = pd.read_csv('embeddings.csv')

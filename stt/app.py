@@ -101,7 +101,7 @@ def transcribe(project, model):
 
             local_path = transcription_filepath
             blob_path = f"transcriptions/{project_name}/{transcription_filename}"
-            upload_to_bucket(project_name, local_path, blob_path)
+            # upload_to_bucket(project_name, local_path, blob_path) # Moved to archiver docker container
 
             # move file to /app/data/processed
             os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")
