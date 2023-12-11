@@ -48,7 +48,8 @@ services:
     environment:
       - TZ=Europe/Moscow
       - PROJECT=oneplusone
-      - SERVER='https://1plus1.video/tvguide/1plus1/online'
+      # - SERVER='https://1plus1.video/tvguide/1plus1/online'
+      - SERVER='https://1plus1.video/tvguide/1plus1ukr/online'
 
   recorder_belarusone:
     restart: always
