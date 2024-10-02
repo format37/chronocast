@@ -14,7 +14,7 @@ sudo docker run \
     --name stt_0 \
     -d \
     -v $(pwd)/cache:/app/cache \
-    -v /home/alex/projects/chronocast/data:/app/data \
+    -v /mnt/hdd0/share/alex/datasets/chronocast/data:/app/data \
     -v $(pwd)/config_0.json:/app/config.json \
     -v $(pwd)/credentials_full.json:/app/credentials_full.json \
     -e GOOGLE_APPLICATION_CREDENTIALS=/app/credentials_full.json \

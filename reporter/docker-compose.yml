@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  chronocast_reporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chronocast_reporter
+    container_name: chronocast_reporter
+    environment:
+      - API_TOKEN=
+      - TELEGRAM_BOT_TOKEN=
+      - TELEGRAM_GROUP_ID=
+    restart: always
+    # Logs limit
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

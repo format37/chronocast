@@ -111,7 +111,12 @@ def transcribe(project, model):
             os.makedirs(f"/app/data/processed/{project_name}/err", exist_ok=True)
             # move file to /app/data/processed
             os.rename(filepath, f"/app/data/processed/{project_name}/err/{filename}")
-
+            logger.info(f"Restarting the container...")
+            # If file size is more than 3Kb, then restart the container
+            if os.path.getsize(f"/app/data/processed/{project_name}/err/{filename}") > 3000:
+                logger.info(f"File size is less than 3Kb. Restarting the container...")
+                # os.system("kill 1")
+                exit() # This will restart the container            
         # iterator += 1
         # break before the last file
         # if iterator >= len(files)-1:

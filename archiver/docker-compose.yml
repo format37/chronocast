@@ -7,5 +7,5 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials_full.json
     volumes:
-      - /home/alex/projects/chronocast/data:/app/data
+      - /mnt/hdd0/share/alex/datasets/chronocast/data:/app/data
       - ./credentials_full.json:/app/credentials_full.json
