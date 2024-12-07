@@ -1,3 +1,4 @@
-openai-whisper
-pandas
-google-cloud-storage
+openai-whisper==20240930
+pandas==2.2.3
+google-cloud-storage==2.19.0
+google-cloud-bigquery==3.27.0

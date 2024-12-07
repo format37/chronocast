@@ -17,8 +17,6 @@ sudo docker run \
     -v /mnt/hdd0/share/alex/datasets/chronocast/data:/app/data \
     -v $(pwd)/config_1.json:/app/config.json \
     -v $(pwd)/credentials_full.json:/app/credentials_full.json \
+    -v ~/.config/gcloud:/root/.config/gcloud:ro \
     -e GOOGLE_APPLICATION_CREDENTIALS=/app/credentials_full.json \
     -t stt
-
-    # -e CUDA_LAUNCH_BLOCKING=1 \
-    # -e TORCH_USE_CUDA_DSA=1 \

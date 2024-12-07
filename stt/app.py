@@ -1,78 +1,84 @@
 import whisper
 import time
-import logging
-import requests
 import os
 import json
-from google.cloud import storage
+from datetime import datetime, timezone
+import uuid
+from google.cloud import bigquery
+from bucket import (
+    list_files, 
+    download_file,
+    delete_file,
+    logger
+)
 
-# Init logging with level INFO
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+def extract_channel_and_filename(file_path):
+    """
+    Extract channel and filename from a file path of format '.../channel/filename.extension'
+    Returns tuple of (channel, filename)
+    """
+    # Split the path and get the last two components
+    parts = file_path.split('/')
+    channel = parts[-2]  # Second to last component is the channel
+    filename = parts[-1]  # Last component is the filename
+    return channel, filename
 
-# BASE_URL = os.environ.get("BASE_URL", "")
-# API_TOKEN = os.environ.get("API_TOKEN", "")
-# headers = {"Authorization": API_TOKEN}
+def parse_timestamp_from_filename(filename):
+    """
+    Parse timestamp from filename of format 'YYYY-MM-DD_HH-MM-SS.extension'
+    Returns datetime object in UTC
+    """
+    # Remove file extension
+    timestamp_str = os.path.splitext(filename)[0]
+    # Parse timestamp
+    dt = datetime.strptime(timestamp_str, '%Y-%m-%d_%H-%M-%S')
+    return dt.replace(tzinfo=timezone.utc)
 
-def list_files(directory, BASE_URL, headers):
-    """Lists files in the specified directory."""
-    response = requests.get(f"{BASE_URL}/list-files/{directory}", headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        # print(f"Error: {response.status_code}, {response.text}")
-        logger.error(f"Error: {response.status_code}, {response.text}")
-
-def download_file(file_path, save_path, BASE_URL, headers):
-    """Downloads a file from the server."""
-    response = requests.get(f"{BASE_URL}/download-file/{file_path}", headers=headers, stream=True)
-    if response.status_code == 200:
-        with open(save_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192): 
-                f.write(chunk)
-        # print(f"File downloaded: {save_path}")
-        logger.info(f"File downloaded: {save_path} from {BASE_URL}")
-    else:
-        # print(f"Error: {response.status_code}, {response.text}")
-        logger.error(f"Error: {response.status_code}, {response.text}")
-
-def delete_file(file_path, BASE_URL, headers):
-    """Deletes a file from the server."""
-    response = requests.delete(f"{BASE_URL}/delete-file/{file_path}", headers=headers)
-    if response.status_code == 200:
-        # print("File deleted.")
-        logger.info(f"File deleted: {file_path} at {BASE_URL}")
-    else:
-        # print(f"Error: {response.status_code}, {response.text}")
-        logger.error(f"Error: {response.status_code}, {response.text}")
-
-def upload_to_bucket(project_name, local_path, blob_path):
-    """Uploads a file to the bucket."""
-    BUCKET_NAME = 'rtlm'  # Your Google Cloud Storage bucket name
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(blob_path)
-    blob.upload_from_filename(local_path)
-    logger.info(f"File {local_path} uploaded to {blob_path}.")
+def upload_to_bigquery(transcript_data, table_id):
+    """
+    Upload a single transcript record to BigQuery
+    """
+    client = bigquery.Client()
     
+    # Define the table schema
+    schema = [
+        bigquery.SchemaField("transcript_id", "STRING"),
+        bigquery.SchemaField("channel", "STRING"),
+        bigquery.SchemaField("transcript_text", "STRING"),
+        bigquery.SchemaField("timestamp", "TIMESTAMP"),
+        bigquery.SchemaField("file_path", "STRING"),
+        bigquery.SchemaField("ingestion_timestamp", "TIMESTAMP")
+    ]
+    
+    # Get the table reference
+    table = client.get_table(table_id)
+    
+    # Prepare the rows to insert
+    rows_to_insert = [transcript_data]
+    
+    # Insert the rows
+    errors = client.insert_rows(table, rows_to_insert)
+    
+    if errors:
+        logger.error(f"Encountered errors while inserting into BigQuery: {errors}")
+        raise Exception(f"BigQuery insert failed: {errors}")
+    else:
+        logger.info(f"Successfully uploaded transcript to BigQuery: {transcript_data['transcript_id']}")
 
-def transcribe(project, model):
+def transcribe(project, model, bq_table_id):
     project_name = project['name']
     # get list of files in /app/data/audio sorted ascending
     files = os.listdir(f"/app/data/audio/{project_name}")
     files.sort()
     logger.info(f"Found {len(files)} files in /app/data/audio/{project_name}")
 
-    # iterator = 0
-
-    # iterate files
     for file in files:
-        # get file name
         filename = os.path.basename(file)
-        # get file path
         filepath = os.path.join(f"/app/data/audio/{project_name}", file)
         logger.info(f"Processing file {filename}...")
+        
         try:
+            # Perform transcription
             if project['language'] == '':
                 result = model.transcribe(
                     filepath,            
@@ -86,47 +92,48 @@ def transcribe(project, model):
                     language=project['language'],
                     prompt=project['prompt']
                 )
-            # language="ru",
-            # prompt="Аудиозапись с телевизора"
-            # print(result["text"])
 
-            # transcription = filename
             transcription = result["text"]
             logger.info(f"Transcription length: {len(transcription)}")
-            # save transcription to file
+            
+            # Save transcription to file
             transcription_filename = filename.replace(".mp3", ".txt")
             transcription_filepath = f"/app/data/transcriptions/{project_name}/{transcription_filename}"
             with open(transcription_filepath, "w") as f:
                 f.write(transcription)
 
-            local_path = transcription_filepath
-            blob_path = f"transcriptions/{project_name}/{transcription_filename}"
-            # upload_to_bucket(project_name, local_path, blob_path) # Moved to archiver docker container
+            # Extract channel and prepare BigQuery record
+            channel, original_filename = extract_channel_and_filename(filepath)
+            timestamp = parse_timestamp_from_filename(filename)
+            
+            # Prepare the record for BigQuery
+            bq_record = {
+                'transcript_id': str(uuid.uuid4()),
+                'channel': channel,
+                'transcript_text': transcription,
+                'timestamp': timestamp,
+                'file_path': original_filename,
+                'ingestion_timestamp': datetime.now(timezone.utc)
+            }
+            
+            # Upload to BigQuery
+            upload_to_bigquery(bq_record, bq_table_id)
 
-            # move file to /app/data/processed
+            # Move file to processed directory
             os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")
+            
         except Exception as e:
             logger.error(f"Error: {e}")
-            # create err folder if not exists
             os.makedirs(f"/app/data/processed/{project_name}/err", exist_ok=True)
-            # move file to /app/data/processed
             os.rename(filepath, f"/app/data/processed/{project_name}/err/{filename}")
-            logger.info(f"Restarting the container...")
-            # If file size is more than 3Kb, then restart the container
+            
             if os.path.getsize(f"/app/data/processed/{project_name}/err/{filename}") > 3000:
-                logger.info(f"File size is less than 3Kb. Restarting the container...")
-                # os.system("kill 1")
-                exit() # This will restart the container            
-        # iterator += 1
-        # break before the last file
-        # if iterator >= len(files)-1:
-        # if iterator >= 2:
-        #     break
+                logger.info(f"File size is more than 3Kb. Restarting the container...")
+                exit()
 
 def main():
-    # create folder /app/data/transcriptions/ if not exists
+    # Create necessary directories
     os.makedirs(f"/app/data/transcriptions", exist_ok=True)
-    # create folder /app/data/processed/ if not exists
     os.makedirs(f"/app/data/processed", exist_ok=True)
 
     # Read config from json
@@ -135,58 +142,51 @@ def main():
 
     logger.info(f"Found {len(config)} projects in config.json:\n{config}")
 
+    # BigQuery table ID
+    bq_table_id = "usavm-334506.rtlm.channel_transcripts"
+
     model_name = "large"
     logger.info(f"Loading the model {model_name}...")
     model = whisper.load_model(model_name, download_root='/app/cache')
 
-    while(True):
-
+    while True:
         server_files_len_max = 0
 
         for project_name, project in config.items():
-
-            # create folder /app/data/transcriptions/{project} if not exists
+            # Create project-specific directories
             os.makedirs(f"/app/data/transcriptions/{project_name}", exist_ok=True)
-            # create folder /app/data/processed/{project} if not exists
             os.makedirs(f"/app/data/processed/{project_name}", exist_ok=True)
 
-            # project = os.environ.get("PROJECT", "")
-            # project_name = key
             BASE_URL = project["BASE_URL"]
-            # API_TOKEN = value["API_TOKEN"]
             headers = {"Authorization": project["API_TOKEN"]}
 
-            # Download the file
+            # Download and process files
             path = f'data/audio/{project_name}'
             files = list_files(path, BASE_URL, headers)
             logger.info(f"Found {len(files)} files in {path}")
             server_files_len = len(files)
             counter = 0
+            
             for file in files:
                 if counter == len(files)-1:
                     print("counter:", counter, "files:", len(files))
                     break            
+                
                 file_path = f'{path}/{file}'
-                # Create folder if not exists
-                logger.info(f"Creating folder: /app/data/audio/{project_name}")
-                # os.makedirs(os.path.dirname(f'/app/data/audio/{project_name}'), exist_ok=True)                
-                # Corrected folder creation
                 os.makedirs(f'/app/data/audio/{project_name}', exist_ok=True)
                 logger.info(f"Downloading file: {file_path}")
-                # print("\nDownloading file: ", file_path)
                 download_file(file_path, f'/app/data/audio/{project_name}/{file}', BASE_URL, headers)
-                transcribe(project, model)
+                transcribe(project, model, bq_table_id)
                 delete_file(file_path, BASE_URL, headers)
                 counter += 1
 
             if server_files_len > server_files_len_max:
                 server_files_len_max = server_files_len
 
-        # wait for 60 seconds
+        # wait for 60 seconds if queue is empty
         if server_files_len_max < 2:
             print("Queue is empty. Waiting for 60 sec...")
             time.sleep(60)
-
 
 if __name__ == "__main__":
     main()

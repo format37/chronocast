@@ -8,9 +8,9 @@ services:
     image: chronocast_reporter
     container_name: chronocast_reporter
     environment:
-      - API_TOKEN=
-      - TELEGRAM_BOT_TOKEN=
-      - TELEGRAM_GROUP_ID=
+      - API_TOKEN=7P4JwwpbVAxdRBjHRKVtdlXskgJKe3Va87xmRGGmRABq8QvKROM1UlzTU4iDybbzixJ79Szwj
+      - TELEGRAM_BOT_TOKEN=94106868:AAF_IqP4BXQOknhyP7x2bhei88-bOzt40o8
+      - TELEGRAM_GROUP_ID=-4508014000
     restart: always
     # Logs limit
     logging:
