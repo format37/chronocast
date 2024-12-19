@@ -9,7 +9,7 @@ fi
 
 # Run the Docker container
 sudo docker run \
-    --gpus '"device=1"' \
+    --gpus '"device=2"' \
     --restart always \
     --name stt_1 \
     -d \
