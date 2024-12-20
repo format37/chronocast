@@ -13,7 +13,7 @@ def record_stream(segment_duration=600):  # segment_duration is in seconds (10 m
     SERVER = os.environ.get('SERVER')
 
     # Define the command to get the stream URL
-    streamlink_cmd = f"streamlink {SERVER} best -O"
+    streamlink_cmd = f"streamlink --http-no-ssl-verify {SERVER} best -O"
 
     os.makedirs(f"data/audio", exist_ok=True)
     project = os.environ.get('PROJECT')
