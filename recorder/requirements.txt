@@ -1,2 +1,2 @@
-streamlink
-ffmpeg
+streamlink==7.0.0
+ffmpeg==1.4
