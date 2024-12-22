@@ -11,6 +11,7 @@ from bucket import (
     delete_file,
     logger
 )
+import pandas as pd
 
 def extract_channel_and_filename(file_path):
     """
@@ -65,6 +66,62 @@ def upload_to_bigquery(transcript_data, table_id):
     else:
         logger.info(f"Successfully uploaded transcript to BigQuery: {transcript_data['transcript_id']}")
 
+def append_to_parquet(project_name: str, transcript_data: dict) -> bool:
+    """
+    Append a transcript row to the project's parquet file
+    
+    Args:
+        project_name (str): Name of the project/channel
+        transcript_data (dict): Dictionary containing transcript data with fields:
+            - transcript_id
+            - channel
+            - transcript_text
+            - timestamp
+            - file_path
+            - ingestion_timestamp
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        parquet_dir = f"/app/data/parquet/{project_name}"
+        os.makedirs(parquet_dir, exist_ok=True)
+        parquet_path = f"{parquet_dir}/{project_name}.parquet"
+        
+        # Create new row as DataFrame
+        new_row = pd.DataFrame([transcript_data])
+        
+        # Read existing data or create new if doesn't exist
+        try:
+            existing_data = pd.read_parquet(parquet_path)
+        except FileNotFoundError:
+            existing_data = pd.DataFrame(columns=[
+                'transcript_id',
+                'channel',
+                'transcript_text',
+                'timestamp',
+                'file_path',
+                'ingestion_timestamp'
+            ])
+        
+        # Append new row
+        updated_data = pd.concat([existing_data, new_row], ignore_index=True)
+        
+        # Write back to parquet file
+        updated_data.to_parquet(
+            parquet_path,
+            engine='pyarrow',
+            index=False,
+            compression='snappy'
+        )
+        
+        logger.info(f"Successfully appended transcript to parquet file: {parquet_path}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error appending to parquet: {str(e)}")
+        return False
+
 def transcribe(project, model, bq_table_id):
     project_name = project['name']
     # get list of files in /app/data/audio sorted ascending
@@ -106,8 +163,8 @@ def transcribe(project, model, bq_table_id):
             channel, original_filename = extract_channel_and_filename(filepath)
             timestamp = parse_timestamp_from_filename(filename)
             
-            # Prepare the record for BigQuery
-            bq_record = {
+            # Prepare the record
+            transcript_data = {
                 'transcript_id': str(uuid.uuid4()),
                 'channel': channel,
                 'transcript_text': transcription,
@@ -116,8 +173,11 @@ def transcribe(project, model, bq_table_id):
                 'ingestion_timestamp': datetime.now(timezone.utc)
             }
             
+            # Append to parquet file
+            append_to_parquet(project_name, transcript_data)
+            
             # Upload to BigQuery
-            upload_to_bigquery(bq_record, bq_table_id)
+            upload_to_bigquery(transcript_data, bq_table_id)
 
             # Move file to processed directory
             os.rename(filepath, f"/app/data/processed/{project_name}/{filename}")

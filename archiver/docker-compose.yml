@@ -2,9 +2,11 @@ version: '3.8'
 
 services:
   chronocast_archiver:
+    container_name: chronocast_archiver
     build: ./
     restart: always
-    volumes:
-      - ./credentials_full.json:/app/credentials.json
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials_full.json
+    volumes:
+      - /mnt/hdd0/share/alex/datasets/chronocast/data:/app/data
+      - ./credentials_full.json:/app/credentials_full.json
