@@ -21,12 +21,16 @@ class BigQueryExporter:
         self.LOCAL_PATH = "/tmp/export.parquet"
         self.BLOB_PATH = "exports/channel_transcripts.parquet"
         
+        # Ensure temp directory exists
+        os.makedirs("/tmp", exist_ok=True)
+        
         # Initialize clients
         self.bq_client = bigquery.Client(project=self.PROJECT_ID)
         self.storage_client = storage.Client()
         self.bucket = self.storage_client.bucket(self.BUCKET_NAME)
         
     def export_to_parquet(self) -> bool:
+        temp_path = f"{self.LOCAL_PATH}.temp"
         try:
             start_time = datetime.now()
             logger.info("Starting BigQuery export")
@@ -42,7 +46,6 @@ class BigQueryExporter:
             logger.info(f"Retrieved {len(df)} rows from BigQuery")
             
             # Save to temporary file first
-            temp_path = f"{self.LOCAL_PATH}.temp"
             df.to_parquet(
                 temp_path,
                 engine='pyarrow',
@@ -60,11 +63,18 @@ class BigQueryExporter:
         except Exception as e:
             logger.error(f"Export failed: {str(e)}")
             if os.path.exists(temp_path):
-                os.remove(temp_path)
+                try:
+                    os.remove(temp_path)
+                except Exception as cleanup_error:
+                    logger.error(f"Failed to clean up temp file: {str(cleanup_error)}")
             return False
             
     def upload_to_gcs(self) -> bool:
         try:
+            if not os.path.exists(self.LOCAL_PATH):
+                logger.error(f"Local file {self.LOCAL_PATH} doesn't exist")
+                return False
+                
             logger.info(f"Uploading {self.LOCAL_PATH} to gs://{self.BUCKET_NAME}/{self.BLOB_PATH}")
             blob = self.bucket.blob(self.BLOB_PATH)
             blob.upload_from_filename(self.LOCAL_PATH)

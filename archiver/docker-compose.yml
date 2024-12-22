@@ -4,3 +4,7 @@ services:
   chronocast_archiver:
     build: ./
     restart: always
+    volumes:
+      - ./credentials_full.json:/app/credentials.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
