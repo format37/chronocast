@@ -1,6 +1,16 @@
-FROM python:3.9.16
+FROM python:3.9-slim
+
 WORKDIR /app
-COPY requirements.txt /app
-RUN pip3 install -r requirements.txt --no-cache-dir
-COPY app.py /app
-CMD ["python3", "app.py"]
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY app.py ./export_service.py
+
+# Copy Google Cloud credentials if needed
+COPY credentials_full.json /app/credentials.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+
+CMD ["python", "export_service.py"]
